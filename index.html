@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Set Initial Balance</title>
+    <style>
+        body {
+            background-color: #f4f4f9;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+            width: 300px;
+            
+            text-align: center;
+            margin-top: 15px;
+            
+        }
+
+        input {
+            padding: 8px;
+            margin: 10px 0;
+            width: 80%;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Set Initial Balance</h2>
+        <input type="number" id="initial-balance" placeholder="Enter your balance" />
+        <button id="set-balance" onclick="window.location.href='addexpense.html'">Set Balance</button>
+        
+    </div>
+
+    <script>
+        document.getElementById('set-balance').addEventListener('click', function() {
+            const balance = parseFloat(document.getElementById('initial-balance').value);
+            if (isNaN(balance) || balance <= 0) {
+                alert('Please enter a valid amount.');
+                return;
+            }
+
+            // Save the balance to localStorage
+            localStorage.setItem('totalBalance', balance);
+            localStorage.setItem('remainingBalance', balance);
+
+            // Redirect to the add-expense page
+            window.location.href = 'addexpense.html';
+        });
+    </script>
+</body>
+</html>

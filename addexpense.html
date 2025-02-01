@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Expenses</title>
+    <style>
+        body {
+            background-color: #f4f4f9;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+            width: 500px;
+            text-align: center;
+        }
+
+        input {
+            padding: 8px;
+            margin: 10px 0;
+            width: 80%;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .expense-list {
+            margin-top: 20px;
+            text-align: left;
+        }
+
+        .expense-item {
+            padding: 10px;
+            margin-bottom: 10px;
+            background-color: #f1f1f1;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .comparison {
+            margin-top: 20px;
+        }
+        
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Add Expenses</h2>
+
+        <!-- Expense Section -->
+        <div id="expense-section">
+            <h3>Total Balance: $<span id="total-balance">0</span></h3>
+            <h3>Remaining Balance: $<span id="remaining-balance">0</span></h3>
+
+            <input type="text" id="expense-name" placeholder="Expense Name">
+            <input type="number" id="expense-amount" placeholder="Amount">
+            <button id="add-expense">Add Expense</button>
+            <h1 class="elsi">History</h1>
+            
+            <ul id="expense-list" class="expense-list"></ul>
+
+            <div class="comparison">
+                <h3>Highest Expense: <span id="highest-expense">None</span></h3>
+                <h3>Lowest Expense: <span id="lowest-expense">None</span></h3>
+            </div>
+
+            <button id="view-chart">View Chart</button>
+        </div>
+    </div>
+
+    <script>
+        let totalBalance = 0;
+        let remainingBalance = 0;
+        let expenses = JSON.parse(sessionStorage.getItem('expenses')) || [];
+
+        // Load balance from localStorage
+        window.onload = function () {
+            totalBalance = parseFloat(localStorage.getItem('totalBalance')) || 0;
+            remainingBalance = parseFloat(localStorage.getItem('remainingBalance')) || 0;
+
+            document.getElementById('total-balance').textContent = totalBalance.toFixed(2);
+            document.getElementById('remaining-balance').textContent = remainingBalance.toFixed(2);
+        };
+
+        // Add Expense
+        document.getElementById('add-expense').addEventListener('click', function() {
+            const name = document.getElementById('expense-name').value.trim();
+            const amount = parseFloat(document.getElementById('expense-amount').value);
+
+            if (name === '' || isNaN(amount) ) {
+                alert('Please enter valid expense details.');
+                return;
+            }
+
+            if (amount > remainingBalance) {
+                alert('You do not have enough balance for this expense.');
+                return;
+            }
+
+            addOrUpdateExpense(name, amount);
+            document.getElementById('expense-name').value = '';
+            document.getElementById('expense-amount').value = '';
+        });
+
+        function addOrUpdateExpense(name, amount) {
+            let existingExpense = expenses.find(exp => exp.name === name);
+
+            if (existingExpense) {
+                remainingBalance += existingExpense.amount;
+                existingExpense.amount += amount;
+            } else {
+                expenses.push({ name, amount });
+            }
+
+            remainingBalance -= amount;
+            updateExpenseList();
+            updateBalance();
+            updateExpenseComparison();
+        }
+
+        function updateExpenseList() {
+            const expenseList = document.getElementById('expense-list');
+            expenseList.innerHTML = '';
+
+            expenses.forEach(expense => {
+                const li = document.createElement('li');
+                li.classList.add('expense-item');
+                li.innerHTML = `${expense.name} - $${expense.amount.toFixed(2)} 
+                    <button onclick="removeExpense('${expense.name}')">❌</button>`;
+                expenseList.appendChild(li);
+            });
+        }
+
+        function removeExpense(name) {
+            const expenseToRemove = expenses.find(exp => exp.name === name);
+            if (!expenseToRemove) return;
+
+            remainingBalance += expenseToRemove.amount;
+            expenses = expenses.filter(exp => exp.name !== name);
+
+            updateExpenseList();
+            updateBalance();
+            updateExpenseComparison();
+        }
+
+        function updateBalance() {
+            document.getElementById('remaining-balance').textContent = remainingBalance.toFixed(2);
+            localStorage.setItem('remainingBalance', remainingBalance);
+            localStorage.setItem('expenses', JSON.stringify(expenses));
+        }
+
+        function updateExpenseComparison() {
+            if (expenses.length === 0) {
+                document.getElementById('highest-expense').textContent = 'None';
+                document.getElementById('lowest-expense').textContent = 'None';
+                return;
+            }
+
+            let highest = expenses.reduce((max, exp) => (exp.amount > max.amount ? exp : max), expenses[0]);
+            let lowest = expenses.reduce((min, exp) => (exp.amount < min.amount ? exp : min), expenses[0]);
+
+            document.getElementById('highest-expense').textContent = `${highest.name} - $${highest.amount.toFixed(2)}`;
+            document.getElementById('lowest-expense').textContent = `${lowest.name} - $${lowest.amount.toFixed(2)}`;
+        }
+
+        // Redirect to Chart Page
+        document.getElementById('view-chart').addEventListener('click', function() {
+            sessionStorage.setItem('expenses', JSON.stringify(expenses)); // Save expenses data to localStorage
+            window.location.href = 'chart1.html'; // Redirect to chart page
+        });
+
+    </script>
+</body>
+</html>
